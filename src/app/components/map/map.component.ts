@@ -1,6 +1,7 @@
 import { Component, type AfterViewInit } from '@angular/core';
 import * as L from 'leaflet';
 import { SchoolsService } from '../../services/schools/schools.service';
+import type { SchoolMetadata } from '../../services/schools/schools.type';
 
 @Component({
   selector: 'app-map',
@@ -52,13 +53,14 @@ export class MapComponent implements AfterViewInit {
       this.schoolsService.getSchools(location.southWest.lat, location.southWest.lng, location.northEast.lat, location.northEast.lng).subscribe((next) => {
         this.markedPoints = [];
         next.results.forEach((school) => {
-          L.marker({ lat: school.position.lat, lng: school.position.lon }, { icon: this.icon }).addTo(this.map);
+          L.marker({ lat: school.position.lat, lng: school.position.lon }, { icon: this.icon }).on("click", (e) => this.clickOnMarker(school, e)).addTo(this.map);
         });
       });
     });
   }
 
-
-
+  clickOnMarker(school: SchoolMetadata, e: any) {
+    console.log(school.nom_etablissement);
+  }
 
 }
