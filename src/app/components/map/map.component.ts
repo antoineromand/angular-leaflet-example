@@ -1,7 +1,7 @@
 import { Component, type AfterViewInit } from '@angular/core';
 import * as L from 'leaflet';
 import { SchoolsService } from '../../services/schools/schools.service';
-import type { SchoolMetadata } from '../../services/schools/schools.type';
+import type { SchoolApiFilters, SchoolMetadata } from '../../services/schools/schools.type';
 import { PopupComponent } from '../popup/popup.component';
 
 @Component({
@@ -19,6 +19,8 @@ export class MapComponent implements AfterViewInit {
 
   popupVisible = false;
   selectedSchool?: SchoolMetadata;
+
+  filters!: SchoolApiFilters;
 
 
   private icon = new L.Icon({
@@ -57,7 +59,15 @@ export class MapComponent implements AfterViewInit {
         southWest: bounds.getSouthWest()
       };
 
-      this.schoolsService.getSchools(location.southWest.lat, location.southWest.lng, location.northEast.lat, location.northEast.lng).subscribe((next) => {
+      this.filters = {
+        lat1: location.southWest.lat,
+        lng1: location.southWest.lng,
+        lat2: location.northEast.lat,
+        lng2: location.northEast.lng,
+        type: "Lycée"
+      };
+
+      this.schoolsService.getSchools(this.filters).subscribe((next) => {
         this.markedPoints = [];
         next.results.forEach((school) => {
           L.marker({ lat: school.position.lat, lng: school.position.lon }, { icon: this.icon }).on("click", (e) => this.clickOnMarker(school, e)).addTo(this.map);

@@ -13,3 +13,13 @@ export type SchoolsApiResult = {
     total_count: number;
     results: SchoolMetadata[];
 };
+
+export type SchoolType = "Lycée" | "Collège" | "Ecole" | "ALL";
+
+export type SchoolApiFilters = {
+    lat1: number,
+    lng1: number,
+    lat2: number,
+    lng2: number,
+    type: SchoolType;
+};

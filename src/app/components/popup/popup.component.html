@@ -1,4 +1,4 @@
-<p-dialog [(visible)]="visible" [modal]="true" [style]="{ width: '25rem' }" (onHide)="onClose()">
+<p-dialog [(visible)]="visible" [modal]="true" [style]="{ width: '25rem' }" (onHide)="onClose()" [closeOnEscape]="true">
     <ng-template #header>
         <h3>{{school_infos?.nom_etablissement?.toUpperCase()}}</h3>
     </ng-template>
