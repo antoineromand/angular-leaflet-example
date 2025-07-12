@@ -2,10 +2,13 @@ import { Component, type AfterViewInit } from '@angular/core';
 import * as L from 'leaflet';
 import { SchoolsService } from '../../services/schools/schools.service';
 import type { SchoolMetadata } from '../../services/schools/schools.type';
+import { PopupComponent } from '../popup/popup.component';
 
 @Component({
   selector: 'app-map',
+  standalone: true,
   providers: [SchoolsService],
+  imports: [PopupComponent],
   templateUrl: './map.component.html',
   styleUrl: './map.component.scss'
 })
@@ -13,6 +16,10 @@ export class MapComponent implements AfterViewInit {
 
   private map!: L.Map;
   private markedPoints: L.Marker[] = [];
+
+  popupVisible = false;
+  selectedSchool?: SchoolMetadata;
+
 
   private icon = new L.Icon({
     iconUrl: 'icons/map-marker.png',
@@ -60,7 +67,14 @@ export class MapComponent implements AfterViewInit {
   }
 
   clickOnMarker(school: SchoolMetadata, e: any) {
-    console.log(school.nom_etablissement);
+    console.log(school);
+    this.selectedSchool = school;
+    this.popupVisible = true;
+  }
+
+  onClosePopup() {
+    this.selectedSchool = undefined;
+    this.popupVisible = false;
   }
 
 }

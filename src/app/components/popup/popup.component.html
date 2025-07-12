@@ -1,0 +1,10 @@
+<p-dialog [(visible)]="visible" [modal]="true" [style]="{ width: '25rem' }" (onHide)="onClose()">
+    <ng-template #header>
+        <h3>{{school_infos?.nom_etablissement?.toUpperCase()}}</h3>
+    </ng-template>
+    <div class="flex items-center gap-4 mb-4">
+        <p>Courriel: {{school_infos?.mail}}</p>
+        <p>Site Internet: {{school_infos?.web ?? "Information manquante"}}</p>
+        <p>Type d'établissement: {{school_infos?.type_etablissement}}</p>
+    </div>
+</p-dialog>
