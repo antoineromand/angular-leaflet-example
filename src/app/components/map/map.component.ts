@@ -4,6 +4,7 @@ import { SchoolsService } from '../../services/schools/schools.service';
 import type { SchoolApiFilters, SchoolMetadata, SchoolsApiResult } from '../../services/schools/schools.type';
 import { PopupComponent } from '../popup/popup.component';
 import { MapFilterComponent } from "../map-filter/map-filter.component";
+import 'leaflet-minimap';
 
 @Component({
   selector: 'app-map',
@@ -25,10 +26,7 @@ export class MapComponent implements AfterViewInit {
 
 
   filters: SchoolApiFilters = {
-    lat1: 0,
-    lat2: 0,
-    lng1: 0,
-    lng2: 0,
+    polygon: [],
     type: 'ALL'
   };
 
@@ -56,22 +54,41 @@ export class MapComponent implements AfterViewInit {
 
     tiles.addTo(this.map);
     this.map.locate({ setView: true, maxZoom: 16 });
+
+    const cartodbAttribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/attribution">CARTO</a>';
+
+    const positron = L.tileLayer('https://{s}.basemaps.cartocdn.com/{z}/{x}/{y}.png', {
+      attribution: cartodbAttribution
+    }).addTo(this.map);
   }
 
   ngAfterViewInit(): void {
     this.initLeafletMap();
     this.map.on('moveend', () => {
       this.cleanMarkers();
-      const bounds = this.map.getBounds();
-      const location = {
-        northEast: bounds.getNorthEast(),
-        southWest: bounds.getSouthWest()
-      };
 
-      this.filters.lat1 = location.southWest.lat;
-      this.filters.lng1 = location.southWest.lng;
-      this.filters.lat2 = location.northEast.lat;
-      this.filters.lng2 = location.northEast.lng;
+      const zoom = this.map.getZoom();
+      if (zoom < 11) {
+        console.log("Zoom trop faible, pas de requête.");
+        return;
+      }
+
+      const bounds = this.map.getBounds();
+      const ne = bounds.getNorthEast();
+      const sw = bounds.getSouthWest();
+
+      console.log({ ne, sw });
+
+
+      const polygonCoords = [
+        [sw.lng, sw.lat],
+        [ne.lng, sw.lat],
+        [ne.lng, ne.lat],
+        [sw.lng, ne.lat],
+        [sw.lng, sw.lat]
+      ];
+
+      this.filters.polygon = [polygonCoords];
 
       this.createSchoolsMarkers(this.filters);
     });
