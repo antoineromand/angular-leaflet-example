@@ -1,26 +1,36 @@
 import { Component, type AfterViewInit } from '@angular/core';
 import * as L from 'leaflet';
 import { SchoolsService } from '../../services/schools/schools.service';
-import type { SchoolApiFilters, SchoolMetadata } from '../../services/schools/schools.type';
+import type { SchoolApiFilters, SchoolMetadata, SchoolsApiResult } from '../../services/schools/schools.type';
 import { PopupComponent } from '../popup/popup.component';
+import { MapFilterComponent } from "../map-filter/map-filter.component";
 
 @Component({
   selector: 'app-map',
   standalone: true,
   providers: [SchoolsService],
-  imports: [PopupComponent],
+  imports: [PopupComponent, MapFilterComponent],
   templateUrl: './map.component.html',
   styleUrl: './map.component.scss'
 })
 export class MapComponent implements AfterViewInit {
 
   private map!: L.Map;
-  private markedPoints: L.Marker[] = [];
 
   popupVisible = false;
   selectedSchool?: SchoolMetadata;
 
-  filters!: SchoolApiFilters;
+  private lastStoredMarkers: L.Marker[] = [];
+
+
+
+  filters: SchoolApiFilters = {
+    lat1: 0,
+    lat2: 0,
+    lng1: 0,
+    lng2: 0,
+    type: 'ALL'
+  };
 
 
   private icon = new L.Icon({
@@ -51,33 +61,33 @@ export class MapComponent implements AfterViewInit {
   ngAfterViewInit(): void {
     this.initLeafletMap();
     this.map.on('moveend', () => {
-      const center = this.map.getCenter();
-      const zoom = this.map.getZoom();
+      this.cleanMarkers();
       const bounds = this.map.getBounds();
       const location = {
         northEast: bounds.getNorthEast(),
         southWest: bounds.getSouthWest()
       };
 
-      this.filters = {
-        lat1: location.southWest.lat,
-        lng1: location.southWest.lng,
-        lat2: location.northEast.lat,
-        lng2: location.northEast.lng,
-        type: "Lycée"
-      };
+      this.filters.lat1 = location.southWest.lat;
+      this.filters.lng1 = location.southWest.lng;
+      this.filters.lat2 = location.northEast.lat;
+      this.filters.lng2 = location.northEast.lng;
 
-      this.schoolsService.getSchools(this.filters).subscribe((next) => {
-        this.markedPoints = [];
-        next.results.forEach((school) => {
-          L.marker({ lat: school.position.lat, lng: school.position.lon }, { icon: this.icon }).on("click", (e) => this.clickOnMarker(school, e)).addTo(this.map);
-        });
+      this.createSchoolsMarkers(this.filters);
+    });
+  }
+
+  createSchoolsMarkers(filters: SchoolApiFilters) {
+    this.schoolsService.getSchools(this.filters).subscribe((next: SchoolsApiResult) => {
+      next.results.forEach((school: SchoolMetadata) => {
+        const marker = L.marker({ lat: school.position.lat, lng: school.position.lon }, { icon: this.icon });
+        this.lastStoredMarkers.push(marker);
+        marker.on("click", (e) => this.clickOnMarker(school, e)).addTo(this.map);
       });
     });
   }
 
   clickOnMarker(school: SchoolMetadata, e: any) {
-    console.log(school);
     this.selectedSchool = school;
     this.popupVisible = true;
   }
@@ -85,6 +95,18 @@ export class MapComponent implements AfterViewInit {
   onClosePopup() {
     this.selectedSchool = undefined;
     this.popupVisible = false;
+  }
+
+  updateFilters(newFilters: SchoolApiFilters) {
+    this.cleanMarkers();
+
+    this.createSchoolsMarkers(newFilters);
+  }
+
+  cleanMarkers() {
+    this.lastStoredMarkers.forEach((marker) => {
+      this.map.removeLayer(marker);
+    });
   }
 
 }

@@ -1,0 +1,7 @@
+<div [style]="{'display': 'flex!important', 'justify-content': 'flex-end'}">
+    <p-card>
+        <p-selectbutton [options]="typeOptions" [(ngModel)]="filters.type" optionLabel="label" optionValue="value"
+            aria-labelledby="basic" [style]="{'z-index': '3', 'position': 'relative', 'width':'fit-content'}"
+            (onChange)="update()" />
+    </p-card>
+</div>
